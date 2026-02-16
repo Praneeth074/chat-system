@@ -34,7 +34,7 @@ export default function Login() {
       const decoded = JSON.parse(atob(token.split(".")[1])); // token has 3 parts [header, payload, signature] we take INDEX 1(payload)
       localStorage.setItem("user", JSON.stringify(decoded)); // store them LS in browser
       connectSocket(token); // will get one socket connection ID
-      navigate("/chat");
+      navigate("/dashboard");
 
     } 
     catch (err) {
