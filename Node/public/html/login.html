@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .chat-box {
+            height: 95vh;
+            width: 90%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #aaa;
+           
+        }
+        .messages {
+            flex: 1;
+            padding: 10px;
+            overflow: auto;
+            scrollbar-width: none;
+            background: #000000;
+        }
+        #messages {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .list {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        .left {
+            justify-content: flex-start;
+        }
+        .right {
+            justify-content: flex-end;
+        }
+        .bubble {
+            max-width: 40vw;
+            overflow-wrap: break-word;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            margin:2px
+        }
+        .left .bubble {
+            background: white;
+            border-top-left-radius: 0;
+        }
+        .right .bubble {
+            background: #1a60e2;
+            border-top-right-radius: 0;
+            color: white
+        }
+        .input-box {
+            display: flex;
+            border-top: 4px solid red;
+        }
+        #msg {
+            flex: 1;
+            padding: 10px;
+            border: 60px;
+        }
+        .send-btn {
+            padding: 10px 15px;
+            border: none;
+            background: #1a60e2;
+            color: white;
+            cursor: pointer;
+        }
+        .top-interface{
+           display:flex;
+           justify-content: space-between;
+           padding: 0px 10px
+        }
+    </style>
+
+
+</head>
+
+<body>
+<div class="chat-box">
+    <div class="top-interface">
+        <h3>Broadcast chat</h3>
+        <!-- <Button>Options</button> -->
+    </div>
+    <div class="messages">
+        <ul id="messages">
+            <!-- li will be appended -->
+        </ul>
+    </div>
+    <div class="input-box">
+        <input id="msg" placeholder="Type message..." />
+        <button onclick="sendMessage()" class="send-btn">Send</button>
+    </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+    const autoscroll = () =>{
+        const msg = document.querySelector(".messages")
+        msg.scrollTop = msg.scrollHeight 
+    }
+    const socket = io(); //connection to IO 
+    const setuserId = prompt("Enter some ID: ") // client ID
+    if(!setuserId){
+        alert("need this one")
+        prompt("Enter some ID: ")
+    } 
+    const userId = Number(setuserId)
+    socket.on("retreive_chat",()=>{
+        const request = confirm("Do you want to recall past converstions in this group?")
+        if(request){
+            socket.emit("request_history")
+        }
+    })
+    function sendMessage() {
+        const text = document.getElementById("msg").value;
+        if (!text) return
+        socket.emit("send_message", {
+            userId,
+            text
+        });
+        document.getElementById("msg").value = "";
+    }
+    socket.on("chat_history",(data)=>{
+       const msg = data.data
+        msg.forEach((data) => {
+            const li = document.createElement("li");
+            li.className = data.user_id === userId ? "right" : "left";
+            console.log(data.user_id , userId)
+            li.style.display = "flex"
+            const bubble = document.createElement("div");
+            const pic = document.createElement("div");
+            pic.style.color = "white"
+            const id = document.createElement("small");
+            id.textContent = data.user_id
+            pic.append(id)
+            bubble.className = "bubble";
+            bubble.innerText = data.text;
+            li.appendChild(bubble);
+            li.appendChild(pic)
+            document.getElementById("messages").appendChild(li);
+        });
+        autoscroll()
+    })
+
+    socket.on("receive_message", (data) => {
+        const li = document.createElement("li");
+        li.className = data.userId === userId ? "right" : "left";
+        li.style.display = "flex"
+        const bubble = document.createElement("div");
+        const pic = document.createElement("div");
+        pic.style.color = "white"
+        const id = document.createElement("small");
+        id.textContent = data.userId
+        pic.append(id)
+        bubble.className = "bubble";
+        bubble.innerText = data.text;
+        li.appendChild(bubble);
+        li.appendChild(pic)
+        document.getElementById("messages").appendChild(li);
+        autoscroll()
+        // const WSize = document.getElementsByClassName("chat-box").screen.availHeight
+        // console.log(WSize)
+        // window.scrollTo(0,WSize)
+    });
+
+</script>
+</body>
+</html>
+
