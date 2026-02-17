@@ -21,12 +21,8 @@ require("./socket programming/socket")(io);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 const port = process.env.PORT;
-
 const authRouter = require('./auth/auth-router')
 const userRouter = require('./api/users-router')
 app.use('/auth',authRouter)
 app.use('/api',userRouter)
-
-server.listen(port, () => {
-    console.log(`Server running on ${port}`);
-});
+server.listen(port, () => {console.log(`Server running on ${port}`)});
